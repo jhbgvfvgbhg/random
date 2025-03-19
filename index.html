@@ -5,7 +5,6 @@
 <title>Universal Pokemon Randomizer</title>
 <meta name=color-scheme content=dark>
 <meta name=viewport content=width=device-width,initial-scale=1.0>
-<script src=https://cjrtnc.leaningtech.com/2.3/loader.js></script>
 </head>
 <body>
 <label for=rompicker>Select Pokémon rom:</label>
@@ -90,12 +89,10 @@ function download(file) {
 
 <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
 <script>
-    window.onload = function() {
-        cheerpjInit().then(() => {
-            cheerpjLoadJar("UPR-FVX.jar").then(() => {
-                cheerpjRunMain("com.example.MainClass", []);
-            });
-        });
+    window.onload = async function() {
+        await cheerpjInit();
+            await cheerpjLoadJar("UPR-FVX.jar");
+                cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
     };
 </script>
 
