@@ -19,8 +19,8 @@ async function loadJAR() {
     console.log("Initializing CheerpJ...");
     await cheerpjInit(); 
 
-    console.log("Ensuring filesystem is ready...");
-    await cheerpjRunCommand(["/bin/mkdir", "-p", "/app"]);  // Creates the /app directory in the virtual filesystem
+    console.log("Waiting for the filesystem to be ready...");
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay to allow FS to initialize
 
     console.log("Fetching JAR file...");
     const response = await fetch("UPR-FVX.jar");
@@ -33,7 +33,7 @@ async function loadJAR() {
     const jarArray = new Uint8Array(jarData);
 
     console.log("Mounting JAR file...");
-    await cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
+    await cheerpjAddStringFile("/UPR-FVX.jar", jarArray);
 
     console.log("Running JAR file...");
     cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
