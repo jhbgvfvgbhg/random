@@ -21,6 +21,9 @@
                 console.log("Initializing CheerpJ...");
                 await cheerpjInit();
 
+                console.log("Ensuring filesystem is ready...");
+                cheerpjFSCreateDir("/app"); // Create the /app/ directory
+
                 console.log("Fetching JAR file...");
                 const response = await fetch("UPR-FVX.jar");
 
@@ -31,13 +34,16 @@
                 const jarData = await response.arrayBuffer();
                 const jarArray = new Uint8Array(jarData);
 
-                console.log("Mounting JAR file...");
-                cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
+                console.log("Waiting for filesystem to be ready...");
+                setTimeout(() => {
+                    console.log("Mounting JAR file...");
+                    cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
 
-                console.log("Running the JAR file...");
-                await cheerpjRunJar("/app/UPR-FVX.jar");
+                    console.log("Running the JAR file...");
+                    cheerpjRunJar("/app/UPR-FVX.jar");
 
-                console.log("JAR file execution started successfully.");
+                    console.log("JAR file execution started successfully.");
+                }, 2000); // Wait 2 seconds for the filesystem to be ready
             } catch (error) {
                 console.error("Error loading JAR:", error);
             }
