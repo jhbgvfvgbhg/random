@@ -13,17 +13,27 @@
     <p><strong>Save your randomized ROM in the <code>/files/</code> folder.</strong></p>
     <p><button id="save">Download contents of <code>/files/</code> folder</button></p>
     <p>Tip: if the app stops working, try a <a href="https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/" target="_blank">hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.</p>
-<script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
 <script>
+async function ensureCheerpJ() {
+    return new Promise((resolve, reject) => {
+        let script = document.createElement("script");
+        script.src = "https://cjrtnc.leaningtech.com/3.1/cj3loader.js";
+        script.onload = () => {
+            console.log("✅ CheerpJ script loaded!");
+            resolve();
+        };
+        script.onerror = () => reject(new Error("❌ CheerpJ script failed to load!"));
+        document.head.appendChild(script);
+    });
+}
+
 async function waitForCheerpJ() {
     return new Promise((resolve, reject) => {
-        let attempts = 0;
-        const maxAttempts = 101; // Adjust if needed (higher = more waiting)
-
+        let attempts = 0, maxAttempts = 100;
         const checkInterval = setInterval(() => {
-            if (window.cheerpjFSCreateDir && window.cheerpjAddStringFile && window.cheerpjRunMain) {
+            if (window.cheerpjInit && window.cheerpjFSCreateDir && window.cheerpjAddStringFile && window.cheerpjRunMain) {
                 clearInterval(checkInterval);
-                console.log("✅ CheerpJ is ready!");
+                console.log("✅ CheerpJ is fully initialized!");
                 resolve();
             } else {
                 attempts++;
@@ -33,34 +43,33 @@ async function waitForCheerpJ() {
                     reject(new Error("❌ CheerpJ failed to initialize."));
                 }
             }
-        }, 200); // Check every 200ms
+        }, 200);
     });
 }
 
 async function loadJAR() {
-    console.log("🚀 Initializing CheerpJ...");
-    
-    await cheerpjInit();
-
+    console.log("🚀 Initializing...");
     try {
-        console.log("⏳ Ensuring CheerpJ is fully ready...");
+        await ensureCheerpJ();
+        await cheerpjInit();
+        console.log("⏳ Checking CheerpJ functions...");
         await waitForCheerpJ();
     } catch (error) {
         console.error(error.message);
         return;
     }
 
-    console.log("📂 Creating necessary directories...");
+    console.log("📂 Creating filesystem directories...");
     try {
         cheerpjFSCreateDir("/app");
     } catch (error) {
-        console.warn("⚠️ Directory /app already exists or failed to create.");
+        console.warn("⚠️ Failed to create /app directory. It may already exist.");
     }
 
     console.log("🔍 Fetching JAR file...");
     const response = await fetch("UPR-FVX.jar");
     if (!response.ok) {
-        console.error("❌ Failed to fetch JAR file:", response.statusText);
+        console.error("❌ Failed to fetch JAR:", response.statusText);
         return;
     }
 
@@ -71,15 +80,15 @@ async function loadJAR() {
     try {
         cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
     } catch (error) {
-        console.error("❌ Error adding JAR file to filesystem:", error);
+        console.error("❌ Error adding JAR to filesystem:", error);
         return;
     }
 
-    console.log("▶️ Running JAR file...");
+    console.log("▶️ Running JAR...");
     try {
         cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
     } catch (error) {
-        console.error("❌ Error running JAR file:", error);
+        console.error("❌ Failed to run JAR:", error);
     }
 }
 
