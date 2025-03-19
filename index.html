@@ -18,11 +18,11 @@
 async function waitForCheerpJFS() {
     return new Promise((resolve) => {
         const checkInterval = setInterval(() => {
-            if (typeof cheerpjAddStringFile === "function") {
+            if (typeof cheerpjFSCreateDir === "function" && typeof cheerpjAddStringFile === "function") {
                 clearInterval(checkInterval);
                 resolve();
             }
-        }, 100); // Check every 100ms
+        }, 100);
     });
 }
 
@@ -32,6 +32,13 @@ async function loadJAR() {
 
     console.log("Waiting for filesystem to be ready...");
     await waitForCheerpJFS();
+
+    console.log("Creating necessary directories...");
+    try {
+        cheerpjFSCreateDir("/app");
+    } catch (error) {
+        console.warn("Warning: Failed to create /app directory. It may already exist.");
+    }
 
     console.log("Fetching JAR file...");
     const response = await fetch("UPR-FVX.jar");
@@ -45,7 +52,7 @@ async function loadJAR() {
 
     console.log("Mounting JAR file...");
     try {
-        await cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
+        cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
     } catch (error) {
         console.error("Error adding JAR file to filesystem:", error);
         return;
