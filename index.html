@@ -1,110 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset=utf-8>
-<title>Universal Pokemon Randomizer</title>
-<meta name=color-scheme content=dark>
-<meta name=viewport content=width=device-width,initial-scale=1.0>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Pokemon Randomizer</title>
+    <meta name="color-scheme" content="dark">
 </head>
 <body>
-<label for=rompicker>Select Pokémon rom:</label>
-<input type=file id=rompicker accept=.gb,.sgb,.gbc,.gba,.nds>
-<p>When the app starts, find your rom in the <code>/str/</code> folder.
-<p><strong>Save your randomized rom in the <code>/files/</code> folder.</strong>
-<p><button id=save>Download contents of <code>/files/</code> folder</button>
-<p>Tip: if the app stops working, try a <a href=https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/ target=_blank>hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.
-<script>
-const rompicker=document.getElementById("rompicker")
-rompicker.addEventListener('change', addFileToVFSandStart);
-document.getElementById("save").addEventListener('click', exportfiles)
-async function addFileToVFSandStart(e){
-    // Do NOT call cheerpjInit() again here!
-    
-    // Put settings files in filesystem
-    for (let i of ['balanced','classic','randomizer_race','super_randomizer_race','trainers_only']) {
-        let settingFile = await fetch('settings/'+i+'.rnqs');
-        let settingFileArray = await settingFile.arrayBuffer();
-        let settingFileUint8 = new Uint8Array(settingFileArray);
-        cheerpjAddStringFile("/str/settings/"+i+".rnqs", settingFileUint8);
-    }
+    <label for="rompicker">Select Pokémon ROM:</label>
+    <input type="file" id="rompicker" accept=".gb,.sgb,.gbc,.gba,.nds">
+    <p>When the app starts, find your ROM in the <code>/str/</code> folder.</p>
+    <p><strong>Save your randomized ROM in the <code>/files/</code> folder.</strong></p>
+    <p><button id="save">Download contents of <code>/files/</code> folder</button></p>
+    <p>Tip: if the app stops working, try a <a href="https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/" target="_blank">hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.</p>
 
-    await cheerpjCreateDisplay(1500,500);
+    <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
+    <script>
+        async function loadJAR() {
+            await cheerpjInit();
+            
+            // Fetch the JAR file from the server
+            const response = await fetch("UPR-FVX.jar");
+            if (!response.ok) {
+                console.error("Failed to fetch JAR file.");
+                return;
+            }
+            
+            const jarData = await response.arrayBuffer();
+            const jarArray = new Uint8Array(jarData);
 
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(e.target.files[0]);
-    reader.onloadend = (evt) => {
-        if (evt.target.readyState === FileReader.DONE) {
-            let arrayBuffer = evt.target.result;
-            var array = new Uint8Array(arrayBuffer);
-            cheerpjAddStringFile("/str/"+e.target.files[0].name, array);
-            cheerpjRunJar("UPR-FVX.jar"); // Running the JAR
+            // Add the JAR file to the virtual filesystem
+            cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
+
+            // Run the main class
+            cheerpjRunJar("/app/UPR-FVX.jar");
         }
-    };
-}
 
-function exportfiles(){
-	let db;
-	const request = indexedDB.open("cjFS_/files/");
-	request.onsuccess = (event) => {
-		db = event.target.result;
-		/*db.transaction("files").objectStore("files").get("test-output.gbc").onsuccess = (event) => {
-			var romdataObj=event.target.result.contents
-			romdataValues=Object.values(romdataObj) // array
-			//const buffer=new ArrayBuffer(romdataValues.length)
-			//const view = new Uint8Array(buffer);
-			const romdata8array = Uint8Array.from(romdataValues);
-			
-			const file = new File([romdata8array], 'test-output.gbc')
-			download(file)
-		};*/
-		db.transaction("files").objectStore("files").getAll().onsuccess = (event) => {
-			files=event.target.result
-			filenames=files[0].contents
-			files.shift()
-			for (let i=0, l=files.length; i<l; i++) {
-				const file = new File([files[i].contents], filenames[i].substring(1))
-				download(file)
-			}
-			/*var romdataObj=event.target.result.contents
-			romdataValues=Object.values(romdataObj) // array
-			const romdata8array = Uint8Array.from(romdataValues);
-			
-			const file = new File([romdata8array], 'test-output.gbc')
-			download(file)*/
-		};
-	};
-
-}
-
-function download(file) {
-	const link = document.createElement('a')
-	const url = URL.createObjectURL(file)
-	
-	link.href = url
-	link.download = file.name
-	document.body.appendChild(link)
-	link.click()
-	
-	document.body.removeChild(link)
-	window.URL.revokeObjectURL(url)
-}
-</script>
-
-<script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
-<script>
-window.onload = async function() {
-    await cheerpjInit();
-    const response = await fetch("https://jhbgvfvgbhg.github.io/random/UPR-FVX.jar");
-    const jarData = await response.arrayBuffer();
-    const jarArray = new Uint8Array(jarData);
-
-    // Add the JAR file to the virtual filesystem
-    cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
-
-    // Run the main class
-    cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
-};
-</script>
-
+        window.onload = loadJAR;
+    </script>
 </body>
 </html>
