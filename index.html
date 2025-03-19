@@ -92,10 +92,18 @@ function download(file) {
 
 <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
 <script>
-    window.onload = async function() {
-        await cheerpjInit();
-        await cheerpjLoadJar("https://jhbgvfvgbhg.github.io/random/UPR-FVX.jar");
-    };
+window.onload = async function() {
+    await cheerpjInit();
+    const response = await fetch("https://jhbgvfvgbhg.github.io/random/UPR-FVX.jar");
+    const jarData = await response.arrayBuffer();
+    const jarArray = new Uint8Array(jarData);
+
+    // Add the JAR file to the virtual filesystem
+    cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
+
+    // Run the main class
+    cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
+};
 </script>
 
 </body>
