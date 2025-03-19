@@ -15,10 +15,10 @@
     <p>Tip: if the app stops working, try a <a href="https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/" target="_blank">hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.</p>
 <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
 <script>
-async function waitForCheerpJFS() {
+async function ensureCheerpJReady() {
     return new Promise((resolve) => {
         const checkInterval = setInterval(() => {
-            if (typeof cheerpjFSCreateDir === "function" && typeof cheerpjAddStringFile === "function") {
+            if (window.cheerpjFSCreateDir && window.cheerpjAddStringFile && window.cheerpjRunMain) {
                 clearInterval(checkInterval);
                 resolve();
             }
@@ -30,12 +30,14 @@ async function loadJAR() {
     console.log("Initializing CheerpJ...");
     await cheerpjInit();
 
-    console.log("Waiting for filesystem to be ready...");
-    await waitForCheerpJFS();
+    console.log("Waiting for CheerpJ to be fully ready...");
+    await ensureCheerpJReady();
 
     console.log("Creating necessary directories...");
     try {
-        cheerpjFSCreateDir("/app");
+        if (typeof cheerpjFSCreateDir === "function") {
+            cheerpjFSCreateDir("/app");
+        }
     } catch (error) {
         console.warn("Warning: Failed to create /app directory. It may already exist.");
     }
