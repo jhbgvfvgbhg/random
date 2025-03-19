@@ -15,56 +15,71 @@
     <p>Tip: if the app stops working, try a <a href="https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/" target="_blank">hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.</p>
 <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
 <script>
-async function ensureCheerpJReady() {
-    return new Promise((resolve) => {
+async function waitForCheerpJ() {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 50; // Adjust if needed (higher = more waiting)
+
         const checkInterval = setInterval(() => {
             if (window.cheerpjFSCreateDir && window.cheerpjAddStringFile && window.cheerpjRunMain) {
                 clearInterval(checkInterval);
+                console.log("✅ CheerpJ is ready!");
                 resolve();
+            } else {
+                attempts++;
+                console.log(`🔄 Waiting for CheerpJ... (${attempts}/${maxAttempts})`);
+                if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    reject(new Error("❌ CheerpJ failed to initialize."));
+                }
             }
-        }, 100);
+        }, 200); // Check every 200ms
     });
 }
 
 async function loadJAR() {
-    console.log("Initializing CheerpJ...");
+    console.log("🚀 Initializing CheerpJ...");
+    
     await cheerpjInit();
 
-    console.log("Waiting for CheerpJ to be fully ready...");
-    await ensureCheerpJReady();
-
-    console.log("Creating necessary directories...");
     try {
-        if (typeof cheerpjFSCreateDir === "function") {
-            cheerpjFSCreateDir("/app");
-        }
+        console.log("⏳ Ensuring CheerpJ is fully ready...");
+        await waitForCheerpJ();
     } catch (error) {
-        console.warn("Warning: Failed to create /app directory. It may already exist.");
+        console.error(error.message);
+        return;
     }
 
-    console.log("Fetching JAR file...");
+    console.log("📂 Creating necessary directories...");
+    try {
+        cheerpjFSCreateDir("/app");
+    } catch (error) {
+        console.warn("⚠️ Directory /app already exists or failed to create.");
+    }
+
+    console.log("🔍 Fetching JAR file...");
     const response = await fetch("UPR-FVX.jar");
     if (!response.ok) {
-        console.error("Failed to fetch JAR file:", response.statusText);
+        console.error("❌ Failed to fetch JAR file:", response.statusText);
         return;
     }
 
     const jarData = await response.arrayBuffer();
     const jarArray = new Uint8Array(jarData);
 
-    console.log("Mounting JAR file...");
+    console.log("📂 Mounting JAR file...");
     try {
         cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
     } catch (error) {
-        console.error("Error adding JAR file to filesystem:", error);
+        console.error("❌ Error adding JAR file to filesystem:", error);
         return;
     }
 
-    console.log("Running JAR file...");
+    console.log("▶️ Running JAR file...");
     try {
         cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
     } catch (error) {
-        console.error("Error running JAR file:", error);
+        console.error("❌ Error running JAR file:", error);
     }
 }
 
