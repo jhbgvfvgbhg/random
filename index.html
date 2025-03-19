@@ -17,23 +17,30 @@
     <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
     <script>
         async function loadJAR() {
-            await cheerpjInit();
-            
-            // Fetch the JAR file from the server
-            const response = await fetch("UPR-FVX.jar");
-            if (!response.ok) {
-                console.error("Failed to fetch JAR file.");
-                return;
+            try {
+                console.log("Initializing CheerpJ...");
+                await cheerpjInit();
+
+                console.log("Fetching JAR file...");
+                const response = await fetch("UPR-FVX.jar");
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch JAR file. Make sure the file exists.");
+                }
+
+                const jarData = await response.arrayBuffer();
+                const jarArray = new Uint8Array(jarData);
+
+                console.log("Mounting JAR file...");
+                cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
+
+                console.log("Running the JAR file...");
+                await cheerpjRunJar("/app/UPR-FVX.jar");
+
+                console.log("JAR file execution started successfully.");
+            } catch (error) {
+                console.error("Error loading JAR:", error);
             }
-            
-            const jarData = await response.arrayBuffer();
-            const jarArray = new Uint8Array(jarData);
-
-            // Add the JAR file to the virtual filesystem
-            cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
-
-            // Run the main class
-            cheerpjRunJar("/app/UPR-FVX.jar");
         }
 
         window.onload = loadJAR;
