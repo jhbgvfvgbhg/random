@@ -14,42 +14,25 @@
     <p><button id="save">Download contents of <code>/files/</code> folder</button></p>
     <p>Tip: if the app stops working, try a <a href="https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/" target="_blank">hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.</p>
 
-    <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
-    <script>
-        async function loadJAR() {
-            try {
-                console.log("Initializing CheerpJ...");
-                await cheerpjInit();
+   <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
+<script>
+async function loadJAR() {
+    console.log("Initializing CheerpJ...");
+    await cheerpjInit();
 
-                console.log("Ensuring filesystem is ready...");
-                cheerpjFSCreateDir("/app"); // Create the /app/ directory
+    console.log("Fetching JAR file...");
+    const response = await fetch("UPR-FVX.jar"); // Make sure the JAR file is correctly hosted
+    const jarData = await response.arrayBuffer();
+    const jarArray = new Uint8Array(jarData);
 
-                console.log("Fetching JAR file...");
-                const response = await fetch("UPR-FVX.jar");
+    console.log("Mounting JAR file...");
+    cheerpjAddStringFile("/UPR-FVX.jar", jarArray); // Removed directory creation step
 
-                if (!response.ok) {
-                    throw new Error("Failed to fetch JAR file. Make sure the file exists.");
-                }
+    console.log("Running JAR file...");
+    cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
+}
 
-                const jarData = await response.arrayBuffer();
-                const jarArray = new Uint8Array(jarData);
-
-                console.log("Waiting for filesystem to be ready...");
-                setTimeout(() => {
-                    console.log("Mounting JAR file...");
-                    cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
-
-                    console.log("Running the JAR file...");
-                    cheerpjRunJar("/app/UPR-FVX.jar");
-
-                    console.log("JAR file execution started successfully.");
-                }, 2000); // Wait 2 seconds for the filesystem to be ready
-            } catch (error) {
-                console.error("Error loading JAR:", error);
-            }
-        }
-
-        window.onload = loadJAR;
-    </script>
+window.onload = loadJAR;
+</script>
 </body>
 </html>
