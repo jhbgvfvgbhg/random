@@ -18,27 +18,30 @@ const rompicker=document.getElementById("rompicker")
 rompicker.addEventListener('change', addFileToVFSandStart);
 document.getElementById("save").addEventListener('click', exportfiles)
 async function addFileToVFSandStart(e){
-	await cheerpjInit();
-	// put settings files in filesystem
-	for (let i of ['balanced','classic','randomizer_race','super_randomizer_race','trainers_only']) {
-		settingFile=await fetch('settings/'+i+'.rnqs')
-		settingFile=await settingFile.arrayBuffer()
-		settingFileUint8=new Uint8Array(settingFile);
-		cheerpjAddStringFile("/str/settings/"+i+".rnqs", settingFileUint8);
-	}
-	await cheerpjCreateDisplay(1500,500);
-	//rompicker.files[0]
-	const reader=new FileReader();
-	reader.readAsArrayBuffer(e.target.files[0]);
-	reader.onloadend = (evt) => {
-		if (evt.target.readyState === FileReader.DONE) {
-			let arrayBuffer = evt.target.result
-			var array = new Uint8Array(arrayBuffer);
-			cheerpjAddStringFile("/str/"+e.target.files[0].name, array);
-			cheerpjRunJar("/app/OnlineUniversalPokemonRandomizer/randomizer.jar");
-		}
-	}
+    // Do NOT call cheerpjInit() again here!
+    
+    // Put settings files in filesystem
+    for (let i of ['balanced','classic','randomizer_race','super_randomizer_race','trainers_only']) {
+        let settingFile = await fetch('settings/'+i+'.rnqs');
+        let settingFileArray = await settingFile.arrayBuffer();
+        let settingFileUint8 = new Uint8Array(settingFileArray);
+        cheerpjAddStringFile("/str/settings/"+i+".rnqs", settingFileUint8);
+    }
+
+    await cheerpjCreateDisplay(1500,500);
+
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(e.target.files[0]);
+    reader.onloadend = (evt) => {
+        if (evt.target.readyState === FileReader.DONE) {
+            let arrayBuffer = evt.target.result;
+            var array = new Uint8Array(arrayBuffer);
+            cheerpjAddStringFile("/str/"+e.target.files[0].name, array);
+            cheerpjRunJar("UPR-FVX.jar"); // Running the JAR
+        }
+    };
 }
+
 function exportfiles(){
 	let db;
 	const request = indexedDB.open("cjFS_/files/");
@@ -91,8 +94,7 @@ function download(file) {
 <script>
     window.onload = async function() {
         await cheerpjInit();
-            await cheerpjLoadJar("UPR-FVX.jar");
-                cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
+        await cheerpjRunJar("UPR-FVX.jar");
     };
 </script>
 
