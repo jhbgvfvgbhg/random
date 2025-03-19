@@ -13,20 +13,27 @@
     <p><strong>Save your randomized ROM in the <code>/files/</code> folder.</strong></p>
     <p><button id="save">Download contents of <code>/files/</code> folder</button></p>
     <p>Tip: if the app stops working, try a <a href="https://www.howtogeek.com/672607/how-to-hard-refresh-your-web-browser-to-bypass-your-cache/" target="_blank">hard refresh</a>. Also, <strong>the app will take a long time to load</strong>, so please be patient.</p>
-
-   <script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
+<script src="https://cjrtnc.leaningtech.com/3.1/cj3loader.js"></script>
 <script>
 async function loadJAR() {
     console.log("Initializing CheerpJ...");
-    await cheerpjInit();
+    await cheerpjInit(); 
+
+    console.log("Ensuring filesystem is ready...");
+    await cheerpjRunCommand(["/bin/mkdir", "-p", "/app"]);  // Creates the /app directory in the virtual filesystem
 
     console.log("Fetching JAR file...");
-    const response = await fetch("UPR-FVX.jar"); // Make sure the JAR file is correctly hosted
+    const response = await fetch("UPR-FVX.jar");
+    if (!response.ok) {
+        console.error("Failed to fetch JAR file:", response.statusText);
+        return;
+    }
+    
     const jarData = await response.arrayBuffer();
     const jarArray = new Uint8Array(jarData);
 
     console.log("Mounting JAR file...");
-    cheerpjAddStringFile("/UPR-FVX.jar", jarArray); // Removed directory creation step
+    await cheerpjAddStringFile("/app/UPR-FVX.jar", jarArray);
 
     console.log("Running JAR file...");
     cheerpjRunMain("com.dabomstew.pkrandom.gui.RandomizerGUI", []);
